@@ -8,7 +8,6 @@ import requests
 
 st.set_page_config(
     page_title="IN Scheme Assistant",
-    page_icon="🇮🇳",
     layout="wide",
     initial_sidebar_state="expanded"
 )
