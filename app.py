@@ -1,73 +1,210 @@
 import streamlit as st
 import requests
-
-
 # ============================================================
 # PAGE CONFIGURATION
 # ============================================================
-
 st.set_page_config(
-    page_title="IN Scheme Assistant",
+    page_title="🇮🇳 Scheme Assistant",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-
 # ============================================================
-# APPLICATION TITLE
+# CUSTOM COLOR THEME
 # ============================================================
-
-st.title("🇮🇳 IN Scheme Assistant")
-
+st.markdown(
+ """<style>
+    /* --------------------------------------------------------
+       MAIN APPLICATION
+    -------------------------------------------------------- */
+    .stApp {
+        background: linear-gradient(
+            135deg,
+            #f8fbff 0%,
+            #eef6ff 50%,
+            #f3fff8 100%
+        );
+        color: #17324d;
+    }
+    /* --------------------------------------------------------
+       HEADINGS
+    -------------------------------------------------------- */
+    h1 {
+        color: #0b3d91 !important;
+        font-weight: 800 !important;
+    }
+    h2,
+    h3 {
+        color: #14532d !important;
+        font-weight: 700 !important;
+    }
+    /* --------------------------------------------------------
+       CAPTIONS
+    -------------------------------------------------------- */
+    [data-testid="stCaptionContainer"] {
+        color: #52677a;
+    }
+    /* --------------------------------------------------------
+       SIDEBAR
+    -------------------------------------------------------- */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(
+            180deg,
+            #e8f3ff 0%,
+            #f5fbff 50%,
+            #effcf5 100%
+        );
+        border-right: 2px solid #c7def5;
+    }
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: #0b3d91 !important;
+    }
+    /* --------------------------------------------------------
+       METRIC CARDS
+    -------------------------------------------------------- */
+    [data-testid="stMetric"] {
+        background: #ffffff;
+        border: 1px solid #cfe2f3;
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow:
+            0 3px 12px rgba(11, 61, 145, 0.08);
+    }
+    [data-testid="stMetricLabel"] {
+        color: #42627d !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: #0b3d91 !important;
+        font-weight: 800 !important;
+    }
+    /* --------------------------------------------------------
+       BUTTONS
+    -------------------------------------------------------- */
+    .stButton > button {
+        background: #0b5ed7;
+        color: white;
+        border: 1px solid #084298;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+    .stButton > button:hover {
+        background: #084298;
+        color: white;
+        border-color: #052c65;
+    }
+    /* MAIN SEARCH BUTTON */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(
+            90deg,
+            #0b5ed7,
+            #198754
+        );
+        color: white;
+        border: none;
+        font-size: 1.05rem;
+        padding: 0.65rem 1rem;
+        font-weight: 700;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(
+            90deg,
+            #084298,
+            #146c43
+        );
+        color: white;
+    }
+    /* --------------------------------------------------------
+       TEXT AREA AND SELECT BOXES
+    -------------------------------------------------------- */
+    .stTextArea textarea,
+    .stSelectbox div[data-baseweb="select"] > div {
+        border: 1px solid #b9d4ec !important;
+        border-radius: 10px !important;
+        background-color: #ffffff !important;
+    }
+    .stTextArea textarea:focus {
+        border-color: #0b5ed7 !important;
+        box-shadow:
+            0 0 0 2px rgba(11, 94, 215, 0.12) !important;
+    }
+    /* --------------------------------------------------------
+       ALERTS
+    -------------------------------------------------------- */
+    div[data-testid="stAlert"] {
+        border-radius: 12px;
+        border-left-width: 5px;
+    }
+    /* --------------------------------------------------------
+       EXPANDERS
+    -------------------------------------------------------- */
+    details {
+        background: #ffffff;
+        border: 1px solid #cfe2f3;
+        border-radius: 12px;
+        margin-bottom: 8px;
+    }
+    details summary {
+        color: #0b3d91 !important;
+        font-weight: 650 !important;
+    }
+    /* --------------------------------------------------------
+       DIVIDERS
+    -------------------------------------------------------- */
+    hr {
+        border-color: #cfe2f3 !important;
+    }
+    /* --------------------------------------------------------
+       FOOTER
+    -------------------------------------------------------- */
+    footer {
+        visibility: hidden;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+# ============================================================
+# APPLICATION HEADER
+# ============================================================
+st.title("🇮🇳 Scheme Assistant")
 st.caption(
     "🤖 AI-powered Government Scheme Discovery Assistant"
 )
-
 st.divider()
-
-
-# ============================================================
+# ==========================================================
 # OLLAMA CONFIGURATION
 # ============================================================
-
 OLLAMA_URL = "http://localhost:11434"
-
-
 def get_ollama_models():
     """
-    Get all models installed in Ollama.
+    Get the list of locally installed Ollama models.
     """
-
     try:
         response = requests.get(
             f"{OLLAMA_URL}/api/tags",
             timeout=10
         )
-
         if response.status_code == 200:
             data = response.json()
-
-            models = data.get("models", [])
-
-            return [
+            models = [
                 model.get("name")
-                for model in models
+                for model in data.get("models", [])
                 if model.get("name")
             ]
-
+            return models
         return []
-
-    except requests.exceptions.RequestException:
+    except requests.exceptions.ConnectionError:
         return []
-
-
+    except requests.exceptions.Timeout:
+        return []
+    except Exception:
+        return []
 def ask_ollama(prompt, model_name):
     """
-    Send a prompt to Ollama.
+    Send a prompt to Ollama and return the generated response.
     """
-
     try:
-
         response = requests.post(
             f"{OLLAMA_URL}/api/generate",
             json={
@@ -77,50 +214,38 @@ def ask_ollama(prompt, model_name):
             },
             timeout=180
         )
-
         if response.status_code == 200:
-
             data = response.json()
-
             return data.get(
                 "response",
-                "No response received from Ollama."
+                "No response was generated."
             )
-
         return (
-            f"❌ Ollama returned error {response.status_code}\n\n"
-            f"Details: {response.text}"
+            f"Ollama returned an error "
+            f"(status code {response.status_code})."
         )
-
     except requests.exceptions.ConnectionError:
-
         return (
-            "❌ Cannot connect to Ollama.\n\n"
+            "Unable to connect to Ollama. "
             "Please make sure Ollama is running."
         )
-
     except requests.exceptions.Timeout:
-
         return (
-            "⏳ Ollama took too long to respond.\n\n"
+            "The AI request timed out. "
             "Please try again."
         )
-
     except Exception as e:
-
-        return f"❌ Unexpected error: {str(e)}"
-
-
+        return f"An unexpected error occurred: {str(e)}"
 # ============================================================
-# GOVERNMENT SCHEME DATA
+# GOVERNMENT SCHEMES DATA
 # ============================================================
-
 SCHEMES = [
-
     {
         "name": "PM Scholarship Scheme",
         "category": "Education",
-        "description": "Scholarship support for eligible students.",
+        "description": (
+            "Scholarship support for eligible students."
+        ),
         "keywords": [
             "student",
             "education",
@@ -129,11 +254,12 @@ SCHEMES = [
             "study"
         ]
     },
-
     {
         "name": "PM-KISAN",
         "category": "Agriculture",
-        "description": "Income support scheme for eligible farmer families.",
+        "description": (
+            "Income support scheme for eligible farmer families."
+        ),
         "keywords": [
             "farmer",
             "agriculture",
@@ -142,11 +268,12 @@ SCHEMES = [
             "kisan"
         ]
     },
-
     {
         "name": "Ayushman Bharat PM-JAY",
         "category": "Healthcare",
-        "description": "Health coverage support for eligible families.",
+        "description": (
+            "Health coverage support for eligible families."
+        ),
         "keywords": [
             "health",
             "hospital",
@@ -155,11 +282,12 @@ SCHEMES = [
             "treatment"
         ]
     },
-
     {
         "name": "PM Mudra Yojana",
         "category": "Business",
-        "description": "Credit support for eligible micro and small businesses.",
+        "description": (
+            "Credit support for eligible micro and small businesses."
+        ),
         "keywords": [
             "business",
             "startup",
@@ -169,11 +297,12 @@ SCHEMES = [
             "small business"
         ]
     },
-
     {
         "name": "Pradhan Mantri Awas Yojana",
         "category": "Housing",
-        "description": "Housing assistance for eligible beneficiaries.",
+        "description": (
+            "Housing assistance for eligible beneficiaries."
+        ),
         "keywords": [
             "house",
             "home",
@@ -182,11 +311,12 @@ SCHEMES = [
             "construction"
         ]
     },
-
     {
         "name": "PM SVANidhi",
         "category": "Business",
-        "description": "Support for eligible street vendors.",
+        "description": (
+            "Support for eligible street vendors."
+        ),
         "keywords": [
             "street vendor",
             "vendor",
@@ -195,11 +325,12 @@ SCHEMES = [
             "shop"
         ]
     },
-
     {
         "name": "Skill India",
         "category": "Skill Development",
-        "description": "Skill development and training opportunities.",
+        "description": (
+            "Skill development and training opportunities."
+        ),
         "keywords": [
             "skill",
             "training",
@@ -208,50 +339,37 @@ SCHEMES = [
             "career"
         ]
     },
-
     {
         "name": "Stand-Up India",
         "category": "Business",
-        "description": "Bank loans for eligible entrepreneurs.",
+        "description": (
+            "Bank loans for eligible entrepreneurs."
+        ),
         "keywords": [
             "business",
             "entrepreneur",
             "startup",
             "loan"
-        ]
-    }
-
-]
-
-
+        ] }]
 # ============================================================
 # SESSION STATE
 # ============================================================
-
 if "question" not in st.session_state:
     st.session_state.question = ""
-
 if "answer" not in st.session_state:
     st.session_state.answer = ""
-
 if "searched" not in st.session_state:
     st.session_state.searched = False
-
-
 # ============================================================
-# SIDEBAR
+# SIDEBAR - USER PROFILE
 # ============================================================
-
 with st.sidebar:
-
     st.header("👤 Your Profile")
-
     st.caption(
-        "Tell us a little about yourself to get more relevant recommendations."
+        "Provide your details to get more relevant scheme suggestions."
     )
-
     age_group = st.selectbox(
-        "🎂 Age Group",
+        "Age Group",
         [
             "Below 18",
             "18–25",
@@ -260,9 +378,8 @@ with st.sidebar:
             "Above 60"
         ]
     )
-
     occupation = st.selectbox(
-        "💼 Occupation",
+        "Occupation",
         [
             "Student",
             "Farmer",
@@ -275,9 +392,8 @@ with st.sidebar:
             "Other"
         ]
     )
-
     state = st.selectbox(
-        "📍 State / Union Territory",
+        "State / UT",
         [
             "All India",
             "Andhra Pradesh",
@@ -294,9 +410,8 @@ with st.sidebar:
             "Other"
         ]
     )
-
     income = st.selectbox(
-        "💰 Income Range",
+        "Income Range",
         [
             "Prefer not to say",
             "Below ₹1 Lakh",
@@ -306,9 +421,8 @@ with st.sidebar:
             "Above ₹10 Lakhs"
         ]
     )
-
     purpose = st.selectbox(
-        "🎯 Main Purpose",
+        "Main Purpose",
         [
             "Education",
             "Employment",
@@ -321,13 +435,10 @@ with st.sidebar:
             "Other"
         ]
     )
-
     st.divider()
-
     st.subheader("⚙️ Search Settings")
-
-    category = st.selectbox(
-        "🏷️ Scheme Category",
+    category_filter = st.selectbox(
+        "Scheme Category",
         [
             "All Categories",
             "Education",
@@ -336,85 +447,69 @@ with st.sidebar:
             "Business",
             "Housing",
             "Skill Development"
-        ]
-    )
-
-
+        ])
 # ============================================================
-# DASHBOARD METRICS
+# DASHBOARD
 # ============================================================
-
+st.subheader("📊 Scheme Dashboard")
+models = get_ollama_models()
+if models:
+    ollama_status = "Online"
+else:
+    ollama_status = "Offline"
 col1, col2, col3, col4 = st.columns(4)
-
 with col1:
     st.metric(
-        "📋 Schemes",
+        "📚 Schemes",
         len(SCHEMES)
     )
-
 with col2:
-    categories = len(
-        set(scheme["category"] for scheme in SCHEMES)
-    )
-
     st.metric(
-        "🏷️ Categories",
-        categories
+        "🗂️ Categories",
+        len(
+            set(
+                scheme["category"]
+                for scheme in SCHEMES
+            )
+        )
     )
-
 with col3:
-    models = get_ollama_models()
-
-    if models:
-        ollama_status = "Online"
-    else:
-        ollama_status = "Offline"
-
     st.metric(
         "🤖 Ollama",
         ollama_status
     )
-
 with col4:
     st.metric(
         "🇮🇳 Coverage",
         "India"
     )
-
-
-st.divider()
-
-
 # ============================================================
 # PROFILE SUMMARY
 # ============================================================
-
-st.subheader("👤 Your Profile")
-
-p1, p2, p3, p4 = st.columns(4)
-
-with p1:
-    st.info(f"🎂 **Age**\n\n{age_group}")
-
-with p2:
-    st.info(f"💼 **Occupation**\n\n{occupation}")
-
-with p3:
-    st.info(f"📍 **State**\n\n{state}")
-
-with p4:
-    st.info(f"🎯 **Purpose**\n\n{purpose}")
-
-
+st.subheader("👤 Your Profile Summary")
+profile_col1, profile_col2, profile_col3, profile_col4 = st.columns(4)
+with profile_col1:
+    st.info(
+        f"**Age Group**\n\n{age_group}"
+    )
+with profile_col2:
+    st.info(
+        f"**Occupation**\n\n{occupation}"
+    )
+with profile_col3:
+    st.info(
+        f"**State / UT**\n\n{state}"
+    )
+with profile_col4:
+    st.info(
+        f"**Purpose**\n\n{purpose}"
+    )
 # ============================================================
 # QUICK QUESTIONS
 # ============================================================
-
-st.subheader("💡 Quick Questions")
-
-q1, q2, q3, q4 = st.columns(4)
-
-with q1:
+st.subheader("⚡ Quick Questions")
+quick_col1, quick_col2, quick_col3, quick_col4 = st.columns(4)
+with quick_col1:
     if st.button(
         "🎓 Schemes for students",
         use_container_width=True
@@ -422,8 +517,9 @@ with q1:
         st.session_state.question = (
             "What government schemes are available for students?"
         )
-
-with q2:
+        st.session_state.searched = False
+        st.rerun()
+with quick_col2:
     if st.button(
         "🌾 Schemes for farmers",
         use_container_width=True
@@ -431,8 +527,9 @@ with q2:
         st.session_state.question = (
             "What government schemes are available for farmers?"
         )
-
-with q3:
+        st.session_state.searched = False
+        st.rerun()
+with quick_col3:
     if st.button(
         "🏥 Healthcare schemes",
         use_container_width=True
@@ -440,8 +537,9 @@ with q3:
         st.session_state.question = (
             "What healthcare government schemes are available?"
         )
-
-with q4:
+        st.session_state.searched = False
+        st.rerun()
+with quick_col4:
     if st.button(
         "💼 Small business schemes",
         use_container_width=True
@@ -449,298 +547,312 @@ with q4:
         st.session_state.question = (
             "What government schemes support small businesses?"
         )
-
-
+        st.session_state.searched = False
+        st.rerun()
 # ============================================================
-# QUESTION INPUT
+# USER QUESTION
 # ============================================================
-
-st.subheader("🔎 Ask Your Question")
-
+st.subheader("🔍 Ask About Government Schemes")
 question = st.text_area(
-    "What would you like to know?",
+    "Enter your question",
     value=st.session_state.question,
     height=120,
     placeholder=(
-        "Example: What government schemes can help me "
-        "with education?"
+        "Example: What government schemes can help "
+        "me with education?"
     )
 )
-
-
 # ============================================================
 # SEARCH BUTTON
 # ============================================================
-
-search = st.button(
+search_button = st.button(
     "🔍 Find Government Schemes",
     type="primary",
     use_container_width=True
 )
-
-
 # ============================================================
-# SEARCH / AI PROCESSING
+# SEARCH PROCESS
 # ============================================================
-
-if search:
-
+if search_button:
     if not question.strip():
-
         st.warning(
-            "⚠️ Please enter a question first."
+            "⚠️ Please enter a question before searching."
         )
-
     else:
-
         st.session_state.question = question
-        st.session_state.searched = True
-
         # ----------------------------------------------------
-        # FIND OLLAMA MODELS
+        # CHECK OLLAMA
         # ----------------------------------------------------
-
         models = get_ollama_models()
-
         if not models:
-
             st.error(
-                "❌ No Ollama model was found."
+                "❌ Ollama is not available.\n\n"
+                "Please make sure Ollama is installed "
+                "and running on your computer."
             )
-
-            st.info(
-                "Make sure Ollama is running and that a model "
-                "is installed."
-            )
-
         else:
-
-            # Use first installed model automatically
+            # ------------------------------------------------
+            # SELECT FIRST AVAILABLE MODEL
+            # ------------------------------------------------
             model_name = models[0]
-
             # ------------------------------------------------
-            # FIND RELEVANT LOCAL SCHEMES
+            # SEARCH TEXT
             # ------------------------------------------------
-
-            search_text = (
-                question.lower()
-                + " "
-                + purpose.lower()
-                + " "
-                + occupation.lower()
-                + " "
-                + category.lower()
-            )
-
-            relevant_schemes = []
-
+            search_text = " ".join(
+                [
+                    question,
+                    purpose,
+                    occupation,
+                    category_filter
+                ]
+            ).lower()
+            # ------------------------------------------------
+            # SCORE SCHEMES
+            # ------------------------------------------------
+            scored_schemes = []
             for scheme in SCHEMES:
-
                 score = 0
-
+                # Keyword matching
                 for keyword in scheme["keywords"]:
-
                     if keyword.lower() in search_text:
-                        score += 1
-
+                        score += 2
+                # Category matching
                 if (
-                    category == "All Categories"
-                    or scheme["category"] == category
+                    category_filter != "All Categories"
+                    and scheme["category"]
+                    == category_filter
                 ):
-                    score += 1
-
-                if score > 0:
-                    relevant_schemes.append(
-                        (score, scheme)
-                    )
-
-            relevant_schemes.sort(
-                key=lambda x: x[0],
+                    score += 5
+                # Purpose matching
+                if (
+                    purpose.lower()
+                    == scheme["category"].lower()
+                ):
+                    score += 4
+                # Occupation matching
+                occupation_lower = occupation.lower()
+                if (
+                    occupation_lower
+                    in " ".join(
+                        scheme["keywords"]
+                    ).lower()
+                ):
+                    score += 3
+                scored_schemes.append(
+                    {
+                        "scheme": scheme,
+                        "score": score
+                    }
+                )
+            # ------------------------------------------------
+            # SORT SCHEMES
+            # ------------------------------------------------
+            scored_schemes.sort(
+                key=lambda x: x["score"],
                 reverse=True
             )
-
-            selected_schemes = [
-                scheme
-                for score, scheme in relevant_schemes[:5]
+            # ------------------------------------------------
+            # SELECT TOP 5
+            # ------------------------------------------------
+            top_schemes = [
+                item["scheme"]
+                for item in scored_schemes[:5]
             ]
-
             # ------------------------------------------------
-            # CREATE AI PROMPT
+            # BUILD SCHEME CONTEXT
             # ------------------------------------------------
-
-            scheme_context = "\n".join(
-                [
-                    f"- {scheme['name']} "
-                    f"({scheme['category']}): "
-                    f"{scheme['description']}"
-                    for scheme in selected_schemes
-                ]
-            )
-
-            if not scheme_context:
-
-                scheme_context = (
-                    "No locally matched schemes were found. "
-                    "Use your knowledge carefully and clearly "
-                    "state when information should be verified."
+            scheme_context = ""
+            for scheme in top_schemes:
+                scheme_context += (
+                    f"\nScheme Name: "
+                    f"{scheme['name']}\n"
                 )
-
+                scheme_context += (
+                    f"Category: "
+                    f"{scheme['category']}\n"
+                )
+                scheme_context += (
+                    f"Description: "
+                    f"{scheme['description']}\n"
+                )
+                scheme_context += "\n"
+            # ------------------------------------------------
+            # AI PROMPT
+            # ------------------------------------------------
             prompt = f"""
-You are an AI assistant that helps people discover
-Indian government schemes.
-
-IMPORTANT:
-Do not invent eligibility requirements, benefit amounts,
-application links, deadlines, or government rules.
-
-Use simple language.
-
-USER PROFILE
-------------
-Age Group: {age_group}
-Occupation: {occupation}
-State: {state}
-Income Range: {income}
-Main Purpose: {purpose}
-
-USER QUESTION
--------------
+You are an AI Government Scheme Assistant for India.
+Your job is to help users understand government schemes
+using ONLY the scheme information provided below.
+USER PROFILE:
+Age Group:
+{age_group}
+Occupation:
+{occupation}
+State / UT:
+{state}
+Income Range:
+{income}
+Main Purpose:
+{purpose}
+USER QUESTION:
 {question}
-
-POTENTIALLY RELEVANT SCHEMES
------------------------------
+RELEVANT SCHEMES:
 {scheme_context}
+INSTRUCTIONS:
 
-TASK
-----
-Answer the user's question clearly.
-
-For every relevant scheme, explain:
-
-1. Scheme name
-2. What it is for
-3. Who may be eligible
-4. Main benefits
-5. Important documents
-6. How to apply
-7. Any important conditions
-
-If exact eligibility or benefit information is uncertain,
-tell the user to verify it on the official government
-portal.
-
-End with:
-
-"⚠️ Please verify the latest eligibility and application
-details on the official government website before applying."
+1. Answer the user's question clearly.
+2. Use simple and easy-to-understand language.
+3. Recommend the most relevant schemes from the provided list.
+4. Explain why each recommended scheme may be relevant.
+5. Mention the scheme name.
+6. Mention its purpose.
+7. Explain who may potentially benefit.
+8. Explain possible benefits only when supported by the
+   provided information.
+9. Do not invent eligibility requirements.
+10. Do not invent benefit amounts.
+11. Do not invent application deadlines.
+12. Do not invent government websites or links.
+13. Do not claim that the user is definitely eligible.
+14. Clearly mention that eligibility should be verified
+    using the official government portal.
+15. If the provided information is insufficient,
+    say so honestly.
+16. Keep the answer structured and useful.
+For each scheme, use this style:
+### Scheme Name
+**Why it may be relevant:**  
+Explain briefly.
+**Purpose:**  
+Explain the purpose.
+**Who may benefit:**  
+Give a general explanation based only on
+the provided information.
+**Important:**  
+Eligibility and application details should be
+verified through the official government portal.
+At the end, provide a short recommendation about
+which schemes the user should investigate first.
 """
-
             # ------------------------------------------------
             # CALL OLLAMA
             # ------------------------------------------------
-
             with st.spinner(
-                f"🤖 {model_name} is analyzing your question..."
+                "🤖 AI is analyzing your profile and finding relevant schemes..."
             ):
-
                 answer = ask_ollama(
                     prompt,
                     model_name
                 )
-
             st.session_state.answer = answer
-
-            # ------------------------------------------------
-            # AI RESULT
-            # ------------------------------------------------
-
-            st.divider()
-
-            st.subheader("🤖 AI Recommendation")
-
-            st.write(answer)
-
-            # ------------------------------------------------
-            # RELEVANT SCHEMES
-            # ------------------------------------------------
-
-            st.divider()
-
-            st.subheader("📋 Relevant Schemes")
-
-            if selected_schemes:
-
-                for scheme in selected_schemes:
-
-                    with st.expander(
-                        f"📌 {scheme['name']}  •  "
-                        f"{scheme['category']}"
-                    ):
-
-                        st.write(
-                            scheme["description"]
-                        )
-
-                        st.write(
-                            "🔎 **Why it may be relevant:** "
-                            "It matches your question, "
-                            "profile, or selected category."
-                        )
-
-            else:
-
-                st.info(
-                    "No matching schemes were found in the "
-                    "current scheme database. Try a different "
-                    "question or category."
+            st.session_state.searched = True
+# ============================================================
+# AI RECOMMENDATION
+# ============================================================
+if st.session_state.searched:
+    st.divider()
+    st.subheader("🤖 AI Recommendation")
+    st.write(
+        st.session_state.answer
+    )
+    # ========================================================
+    # RELEVANT SCHEMES
+    # ========================================================
+    st.subheader("📚 Relevant Schemes")
+    search_text = " ".join(
+        [
+            st.session_state.question,
+            purpose,
+            occupation,
+            category_filter
+        ]
+    ).lower()
+    scored_schemes = []
+    for scheme in SCHEMES:
+        score = 0
+        for keyword in scheme["keywords"]:
+            if keyword.lower() in search_text:
+                score += 2
+        if (
+            category_filter != "All Categories"
+            and scheme["category"]
+            == category_filter
+        ):
+            score += 5
+        if (
+            purpose.lower()
+            == scheme["category"].lower()
+        ):
+            score += 4
+        occupation_lower = occupation.lower()
+        if (
+            occupation_lower
+            in " ".join(
+                scheme["keywords"]
+            ).lower()
+        ):
+            score += 3
+        scored_schemes.append(
+            {
+                "scheme": scheme,
+                "score": score
+            }
+        )
+    scored_schemes.sort(
+        key=lambda x: x["score"],
+        reverse=True
+    )
+    top_schemes = scored_schemes[:5]
+    for item in top_schemes:
+        scheme = item["scheme"]
+        score = item["score"]
+        with st.expander(
+            f"📌 {scheme['name']} — {scheme['category']}"
+        ):
+            st.write(
+                f"**Description:** "
+                f"{scheme['description']}"
+            )
+            if score > 0:
+                st.success(
+                    f"⭐ Relevance score: {score}"
                 )
-
-
+            else:
+                st.info(
+                    "This scheme is included as "
+                    "a general recommendation."
+                )
 # ============================================================
-# OLLAMA STATUS
+# OLLAMA CONNECTION STATUS
 # ============================================================
-
 st.divider()
-
-with st.expander("🤖 Ollama Connection Status"):
-
+with st.expander("🛠️ Ollama Connection Status"):
     current_models = get_ollama_models()
-
     if current_models:
-
         st.success(
-            "✅ Ollama is connected and available."
+            "🟢 Ollama is connected and ready."
         )
-
-        st.write("**Installed model(s):**")
-
+        st.write("Installed models:")
         for model in current_models:
-            st.write(f"• `{model}`")
-
+            st.write(
+                f"• {model}"
+            )
     else:
-
         st.error(
-            "❌ Ollama is not available."
+            "🔴 Ollama is not currently available."
         )
-
         st.write(
-            "Make sure Ollama is running on "
-            "`http://localhost:11434`."
+            "Make sure Ollama is running and try again."
         )
-
-
 # ============================================================
 # FOOTER
 # ============================================================
-
 st.divider()
-
 st.caption(
-    "🇮🇳 IN Scheme Assistant • AI-powered government scheme discovery"
+    "IN Scheme Assistant • "
+    "AI-powered Government Scheme Discovery"
 )
-
 st.caption(
-    "⚠️ This application provides informational assistance. "
-    "Always verify the latest scheme details with the relevant "
-    "official government department or portal."
+    "⚠️ Please verify scheme eligibility, benefits, "
+    "and application details on official government portals."
 )
