@@ -1,11 +1,13 @@
 # AI Government Scheme Assistant 🇮🇳
 
 An AI-powered Government Scheme Assistant that helps users discover relevant government schemes based on their profile and questions.
+
 ## 📸 Application Preview
 
-![AI Government Scheme Assistant - Screenshot 1](screenshots/govt_assistant app1.jpeg)
+![AI Government Scheme Assistant - Screenshot 1](./screenshots/govt_assistant_app1.jpeg)
 
-![AI Government Scheme Assistant - Screenshot 2](screenshots/govt_assistant app2.jpeg)
+![AI Government Scheme Assistant - Screenshot 2](./screenshots/govt_assistant_app2.jpeg)
+
 ## Features
 
 - 🔍 Government scheme discovery
